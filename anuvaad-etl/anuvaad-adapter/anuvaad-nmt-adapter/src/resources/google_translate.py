@@ -44,7 +44,8 @@ class GoogleTranslate_v3(Resource):
                         result.append(k)
                     out = CustomResponse(Status.SUCCESS.value,result)
                     log_info("output: {}".format(result),MODULE_CONTEXT)
-                    log_exception("cause: {}".format(response),MODULE_CONTEXT)
+                    log_info("cause: {}".format(response),MODULE_CONTEXT)
+                    log_info("src_txt: {}".format(mod_id),MODULE_CONTEXT)
                     return out.getres()
             else:
                 log_info("Error in Gnmt:invalid api request,either incorrect format or Mandatory input parameters missing or empty request",MODULE_CONTEXT)
@@ -53,6 +54,6 @@ class GoogleTranslate_v3(Resource):
         except Exception as e:
                 log_exception("Error in Gnmt: {}".format(e),MODULE_CONTEXT,e)
                 status = Status.SYSTEM_ERR.value
-                status['msg'] = str(e)
+                status['message'] = str(e)
                 out = CustomResponse(status, request.json)                  
                 return out.getres()
