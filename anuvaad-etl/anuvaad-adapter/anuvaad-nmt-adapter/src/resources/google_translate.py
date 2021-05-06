@@ -32,11 +32,11 @@ class GoogleTranslate_v3(Resource):
                         })
                     res = MessageToDict(response._pb)
                     result = []
-                    a = res['translations']
+                    g_out = res['translations']
                     mod_id = [{
                             "src":jsn[i]["src"],
                             "s_id":jsn[i]["s_id"],
-                            "tgt": a[i]['translatedText']
+                            "tgt": g_out[i].get('translatedText',jsn[i]["src"])
                     }
                     for i in range(len(jsn))]
                     for j,k in enumerate(jsn):
@@ -50,7 +50,7 @@ class GoogleTranslate_v3(Resource):
                 return out.getres()
         except Exception as e:
             log_exception("Error in Gnmt adapter: {}".format(e),MODULE_CONTEXT,e)
-            log_info("Error in Gnmt adapter: {}".format(a),MODULE_CONTEXT)
+            log_info("Error in Gnmt adapter: {}".format(g_out),MODULE_CONTEXT)
             status = Status.SYSTEM_ERR.value
             status['message'] = str(e)
             out = CustomResponse(status, request.json)                  
