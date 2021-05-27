@@ -2,46 +2,34 @@ import config
 import json
 from models import UserAuthenticationModel
 
+authModel = UserAuthenticationModel()
 
 class UserAuthenticationRepositories:
 
-    @staticmethod
-    def user_login(userName, password):
-
-        result = UserAuthenticationModel.user_login(userName, password)
+    def user_login(self,user_name, password):
+        result = authModel.user_login(user_name, password)
         return result
 
-    @staticmethod
-    def user_logout(userName):
-
-        result = UserAuthenticationModel.user_logout(userName)
+    def user_logout(self,user_name):
+        result = authModel.user_logout(user_name)
         return result
 
-    @staticmethod
-    def token_search(token,temp):
-
-        result = UserAuthenticationModel.token_search(token,temp)
+    def token_search(self,token,temp):
+        result = authModel.token_search(token,temp)
         return result
 
-    @staticmethod
-    def forgot_password(userName):
-
-        result = UserAuthenticationModel.forgot_password(userName)
+    def forgot_password(self,user_name):
+        result = authModel.forgot_password(user_name)
+        return result
+  
+    def reset_password(self,user_id,user_name,password):
+        result = authModel.reset_password(user_id,user_name,password)
         return result
 
-    @staticmethod
-    def reset_password(userId,userName,password):
-
-        result = UserAuthenticationModel.reset_password(userId,userName,password)
-        return result
-    @staticmethod
-    def verify_user(user_email,user_id):
-        
-        result = UserAuthenticationModel.verify_user(user_email,user_id)
+    def verify_user(self,user_email,user_id):
+        result = authModel.verify_user(user_email,user_id)
         return result
 
-    @staticmethod
-    def activate_deactivate_user(user_email,status):
-        
-        result = UserAuthenticationModel.activate_deactivate_user(user_email,status)
+    def activate_deactivate_user(self,user_email,status):
+        result = authModel.activate_deactivate_user(user_email,status)
         return result
