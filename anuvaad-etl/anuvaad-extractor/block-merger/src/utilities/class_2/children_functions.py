@@ -64,8 +64,6 @@ def get_layout_proposals(pdf_data,flags) :
     for indx in range(len(pdf_data["page_width"])):
         width_ratio = pdf_data['page_width'][indx] / pdf_data['pdf_image_width'][indx]
         height_ratio = pdf_data['page_height'][indx]/ pdf_data['pdf_image_height'][indx]
-        print(pdf_data['page_width'][indx], pdf_data['page_height'][indx])
-        print(width_ratio,height_ratio)
 
         if (flags['page_layout'] =='single_column')or(flags['doc_class'] == 'class_1') :
 
