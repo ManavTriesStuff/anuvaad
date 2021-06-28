@@ -341,7 +341,7 @@ class PdfUpload extends Component {
 
         <div className={classes.div}>
           <Typography value="" variant="h4" className={classes.typographyHeader}>
-            {this.state.uploadType ? "Document Translate" : "Data Collection"}
+            {this.state.uploadType ? "DOCX/PPTX Translate" : "Data Collection"}
           </Typography>
           <br />
           <Typography className={classes.typographySubHeader}>{this.state.uploadType ? translate("pdf_upload.page.label.uploadMessage") : "Upload file that you want to collect data."}</Typography>
@@ -354,7 +354,7 @@ class PdfUpload extends Component {
                   <DropzoneArea className={classes.DropZoneArea}
                     showPreviewsInDropzone
                     dropZoneClass={classes.dropZoneArea}
-                    acceptedFiles={[".txt,audio/*,.ods,.pptx,image/*,.psd,.pdf,.xlsm,.xltx,.xltm,.xla,.xltm,.docx,.rtf", ".txt", ".pdf", ".doc", ".ppt", ".excel", ".xlsx", ".xls", ".log", ".xlsb"]}
+                    acceptedFiles={[".pptx,.docx"]}
                     onChange={this.handleChange.bind(this)}
                     filesLimit={1}
                     maxFileSize={200000000000}

@@ -279,33 +279,6 @@ class InteractiveDocHeader extends React.Component {
             <div style={{ display: "flex", flexDirection: "row" }}>
                 {!this.props.show_pdf && !this.props.preview && workflow !== 'WF_A_FTTKTR' && <Button color="primary" variant="outlined" onClick={this.hideDocument.bind(this)}>{this.props.docView ? "Show Document" : " Hide document"}</Button>}
                 {!this.props.docView && !this.props.preview && workflow !== 'WF_A_FTTKTR' && <Button color="primary" variant="outlined" style={{ marginLeft: "10px" }} onClick={this.openPDF.bind(this)}>{this.props.show_pdf ? "Show Sentences" : " Show PDF"}</Button>}
-                {/* {
-                    workflow === 'WF_A_FTTKTR' &&
-                    <>
-                        <Button variant="outlined" color="primary" style={{ marginLeft: "10px" }} onClick={this.handleOptionsMenu.bind(this)}>
-                            View Options
-                            <DownIcon />
-                        </Button>
-                        <StyledMenu
-                            id="menu-appbar"
-                            anchorEl={optionsEl}
-                            open={openOptionsEl}
-                            onClose={this.handleClose.bind(this)}
-                        >
-                            <MenuItem
-                                style={{ borderTop: "1px solid #D6D6D6" }}
-                            >
-                                View Document
-                            </MenuItem>
-                            <MenuItem
-                                style={{ borderTop: "1px solid #D6D6D6" }}
-                            >
-                                View Images
-                            </MenuItem>
-                        </StyledMenu>
-                    </>
-                } */}
-
                 <Button variant="outlined" color="primary" style={{ marginLeft: "10px" }} onClick={this.handleMenu.bind(this)}>
                     Download
                     <DownIcon />
@@ -319,46 +292,11 @@ class InteractiveDocHeader extends React.Component {
                 >
                     <MenuItem
                         style={{ borderTop: "1px solid #D6D6D6" }}
-                        onClick={() => {
-                            this.fetchFile("txt")
-                        }}
+                        onClick={this.fetchDigitalFile}
                     >
-                        As TXT
+                        As {type}
                     </MenuItem>
-                    <MenuItem
-                        style={{ borderTop: "1px solid #D6D6D6" }}
-                        onClick={() => {
-                            this.fetchFile("xlsx")
-                        }}
-                    >
-                        As XLSX
-                    </MenuItem>
-                    {!this.props.preview && workflow !== 'WF_A_FTTKTR' && <MenuItem
-                        style={{ borderTop: "1px solid #D6D6D6" }}
-                        onClick={() => {
-                            this.setState({ anchorEl: null })
-                            this.props.onShowPreview()
-                        }}
-                    >
-                        As PDF
-                    </MenuItem>}
-                    {workflow !== 'WF_A_FTTKTR' ?
-                        <MenuItem
-                            style={{ borderTop: "1px solid #D6D6D6" }}
-                            onClick={this.fetchDocxFile}
-                        >
-                            As DOCX
-                        </MenuItem>
-                        :
-                        <MenuItem
-                            style={{ borderTop: "1px solid #D6D6D6" }}
-                            onClick={this.fetchDigitalFile}
-                        >
-                            As {type}
-                        </MenuItem>
-                    }
                 </StyledMenu>
-
             </div>
         );
     }

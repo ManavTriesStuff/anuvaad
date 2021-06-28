@@ -7,6 +7,8 @@ import { clearHighlighBlock } from '../../../../flux/actions/users/translator_ac
 import { bindActionCreators } from "redux";
 import APITransport from '../../../../flux/actions/apitransport/apitransport';
 import { highlightSource } from '../../../../utils/HtmlHighlightProcess';
+import Paper from '@material-ui/core/Paper';
+
 const $ = require('jquery');
 
 
@@ -39,7 +41,7 @@ class PageCardHtml extends React.Component {
                 this.removeFontTag();
             }
             if (source) {
-                this.processScrollIntoView('white', source)
+                this.processScrollIntoView('none', source)
             }
             this.props.clearHighlighBlock();
         } else if (highlightBlock.block) {
@@ -146,7 +148,9 @@ class PageCardHtml extends React.Component {
 
     render() {
         return (
-            <span id='paper' style={{ zoom: `${this.props.zoomPercent}%` }}></span>
+            <span id="digital-doc" style={{ zoom: `${this.props.zoomPercent}%` }}>
+                <Paper id="paper" style={{ background: 'none', padding: '3%' }}></Paper>
+            </span>
 
         )
     }
