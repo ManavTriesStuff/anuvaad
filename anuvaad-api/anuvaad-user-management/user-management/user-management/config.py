@@ -17,16 +17,18 @@ ENABLE_CORS =   False
 #mongodb-configs
 MONGO_DB_SCHEMA                 =   os.environ.get('MONGO_DB_IDENTIFIER', 'usermanagement')
 USR_MONGO_COLLECTION            =   os.environ.get('UMS_USR_COLLECTION', 'sample')
-USR_TOKEN_MONGO_COLLECTION      =   os.environ.get( 'UMS_USR_TOKEN_COLLECTION', 'usertokens')
-USR_TEMP_TOKEN_MONGO_COLLECTION =   os.environ.get( 'UMS_USR_TEMP_TOKEN_COLLECTION', 'usertemptoken')
+USR_TOKEN_MONGO_COLLECTION      =   os.environ.get('UMS_USR_TOKEN_COLLECTION', 'usertokens')
+USR_TEMP_TOKEN_MONGO_COLLECTION =   os.environ.get('UMS_USR_TEMP_TOKEN_COLLECTION', 'usertemptoken')
 USR_ORG_MONGO_COLLECTION        =   os.environ.get('UMS_ORG_COLLECTION', 'organization')
-
+EX_USR_MONGO_COLLECTION         =   os.environ.get('UMS_EX_USR_COLLECTION', 'exusers')
+EX_USR_TOKEN_MONGO_COLLECTION   =   os.environ.get('UMS_EX_USR_TOKEN_COLLECTION', 'exusertokens')
 #common-variables
 MIN_LENGTH              =   os.environ.get('UMS_PASSWORD_MIN_LENGTH', 6)
 OFFSET_VALUE            =   os.environ.get('UMS_OFFSET_VALUE', 0)
 LIMIT_VALUE             =   os.environ.get('UMS_LIMIT_VALUE', 20)
 AUTH_TOKEN_EXPIRY_HRS   =   os.environ.get('UMS_TOKEN_EXP_HRS', 24)
 ADMIN_ROLE_KEY          =   os.environ.get('UMS_ADMIN_ROLE_KEY', "ADMIN")
+EXTENSION_USR_ROLE_KEY  =   os.environ.get('UMS_EXTENSION_USER',"EXTENSION")
 
 #external file read configs
 ROLE_CODES_URL          =   os.environ.get('UMS_ROLE_CODES_URL','https://raw.githubusercontent.com/project-anuvaad/anuvaad/zuul_gateway/anuvaad-api/anuvaad-zuul-api-gw/dev-configs/roles.json')

@@ -14,7 +14,6 @@ class Status(enum.Enum):
     SUCCESS_USR_UPDATION = {'ok': True, 'http': {'status': 200},
                             'why': "users were updated successfully"}
     
-    
     SUCCESS_USR_SEARCH = {'ok': True, 'http': {'status': 200},
                           'why': "users were searched successfully"}
     SUCCESS_ORG_SEARCH = {'ok': True, 'http': {'status': 200},

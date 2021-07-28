@@ -29,7 +29,7 @@ class UserLogin(Resource):
         log_info("Login credentials check passed for {}".format(user_name),MODULE_CONTEXT)
         try:
             result = authRepo.user_login(user_name, password)
-            if result == False:
+            if "errorID" in result :
                 log_info("Login failed for {}".format(user_name),MODULE_CONTEXT)
                 res = CustomResponse(Status.FAILURE_USR_LOGIN.value, None)
                 return res.getresjson(), 400

@@ -17,7 +17,7 @@ from flask_mail import Mail, Message
 from app import mail
 from flask import render_template
 from collections import Counter
-from config import USR_MONGO_COLLECTION,USR_TEMP_TOKEN_MONGO_COLLECTION,USR_TOKEN_MONGO_COLLECTION
+from config import EX_USR_MONGO_COLLECTION, EX_USR_TOKEN_MONGO_COLLECTION, USR_MONGO_COLLECTION,USR_TEMP_TOKEN_MONGO_COLLECTION,USR_TOKEN_MONGO_COLLECTION
 
 SECRET_KEY          =   secrets.token_bytes()
 
@@ -100,28 +100,30 @@ class UserUtils:
 
 
     @staticmethod
-    def generate_token(user_name, password):
+    def generate_token(userdetails, collection):
         """Issuing new token
 
         defining expiry period for token,
         jwt token generated with payload as user_name and password,
         storing the token in database.
         """
-        
         try:
             #seting time limit for token expiry
             time_limit = datetime.datetime.utcnow() + datetime.timedelta(hours=token_life) 
             #creating payload for token 
-            payload = {"userName": user_name, "password": str( UserUtils.hash_password(password)), "exp": time_limit}
+            if "password" not in userdetails:
+                payload = {"userID": userdetails["user_name"], "exp": time_limit}
+            else:
+                payload = {"userName": userdetails["user_name"],userdetails["password"]: str( UserUtils.hash_password(userdetails["password"])), "exp": time_limit}
             #generating token
             token = jwt.encode(payload, SECRET_KEY, algorithm='HS256')
-            log_info("New token issued for {}".format(user_name), MODULE_CONTEXT) 
+            log_info("New token issued for {}".format(userdetails["user_name"]), MODULE_CONTEXT) 
             #connecting to mongo instance/collection
-            collections = get_db()[USR_TOKEN_MONGO_COLLECTION]
+            collections = get_db()[collection]
             #storing token in database
-            collections.insert({"user": user_name, "token": token.decode("utf-8"), "secret_key": SECRET_KEY,
+            collections.insert({"user": userdetails["user_name"], "token": token.decode("utf-8"), "secret_key": SECRET_KEY,
                                     "active": True, "start_time": eval(str(time.time()).replace('.', '')[0:13]), "end_time": 0})
-            log_info("Login details stored on database for {}".format(user_name), MODULE_CONTEXT)
+            log_info("Login details stored on database for {}".format(userdetails["user_name"]), MODULE_CONTEXT)
             return token
         except Exception as e:
             log_exception("Database connection exception ",  MODULE_CONTEXT, e)
@@ -142,8 +144,13 @@ class UserUtils:
             #searching for token from database    
             result = collections.find({"token": token},{"_id": 0, "user": 1, "active": 1, "secret_key": 1})
             if result.count() == 0:
-                log_info("No token found matching the auth-token-search request", MODULE_CONTEXT)
-                return post_error("Invalid token", "Token received is not matching", None)
+                log_info("Checking in extension users repo, for the token",MODULE_CONTEXT)
+                #checking for extension users
+                collections = get_db()[EX_USR_TOKEN_MONGO_COLLECTION]
+                result = collections.find({"token": token},{"_id": 0, "user": 1, "active": 1, "secret_key": 1})
+                if result.count() == 0:
+                    return post_error("Invalid token","Not a valid token",None)
+                
             for value in result:
                 #checking for token status = False 
                 if value["active"] == False:
@@ -162,11 +169,12 @@ class UserUtils:
                         return post_error("Invalid token", "Token has expired", None)
                     except Exception as e:
                         log_exception("Auth-token expired, jwt decoding failed",  MODULE_CONTEXT, e)
+                        collections.update({"token": token}, {"$set": {"active": False}})
                         return post_error("Invalid token", "Not a valid token", None)
+           
         except Exception as e:
             log_exception("Database connection exception ",  MODULE_CONTEXT, e)
             return post_error("Database connection exception", "An error occurred while connecting to the database", None)
-
 
     @staticmethod
     def get_user_from_token(token,temp):
@@ -184,28 +192,33 @@ class UserUtils:
             #searching for database record matching token, getting user_name
             result = collections.find({"token": token}, {"_id": 0, "user": 1})
             if result.count() == 0:
-                return post_error("Invalid token", "Token received is not matching", None)
-            for record in result:
-                username = record["user"]     
+                collections = get_db()[EX_USR_TOKEN_MONGO_COLLECTION]
+                result = collections.find({"token": token}, {"_id": 0, "user": 1})
+                if result.count == 0:
+                    return post_error("Invalid token", "Token received is not matching", None)
+                else:
+                    log_info("Fetching user details from extension users repo",MODULE_CONTEXT)
+                    username = result[0]["user"]
+                    ex_usr_collection = get_db()[EX_USR_MONGO_COLLECTION]
+                    ex_usr = ex_usr_collection.find({"userID": username}, {"_id": 0,"userID" : 1,"roles" : 1})
+                    ex_usr_collection.update_one({"userID":username},{"$set":{"last_activity_at" :eval(str(time.time()))}})
+                    return ex_usr[0]
+            else:
+                for record in result:
+                    username = record["user"] 
+                collections_usr = get_db()[USR_MONGO_COLLECTION]
+                #searching for database record matching username
+                result_usr = collections_usr.find({"userName": username,"is_verified":True}, {"_id": 0, "password": 0})
+                for record in result_usr:
+                    #checking active status of user
+                    if record["is_active"] == False:
+                        log_info("{} is not an active user".format(username),MODULE_CONTEXT)
+                        return post_error("Not active", "This operation is not allowed for an inactive user", None)
+                    return record    
         except Exception as e:
             log_exception("db connection exception ",  MODULE_CONTEXT, e)
             return post_error("Database connection exception", "An error occurred while connecting to the database", None)
-        try:
-            #connecting to mongo instance/collection
-            collections_usr = get_db()[USR_MONGO_COLLECTION]
-            #searching for database record matching username
-            result_usr = collections_usr.find({"userName": username,"is_verified":True}, {"_id": 0, "password": 0})
-            for record in result_usr:
-                #checking active status of user
-                if record["is_active"] == False:
-                    log_info("{} is not an active user".format(username),MODULE_CONTEXT)
-                    return post_error("Not active", "This operation is not allowed for an inactive user", None)
-                return record
-        except Exception as e:
-            log_exception("db connection exception ",  MODULE_CONTEXT, e)
-            return post_error("Database connection exception", "An error occurred while connecting to the database", None)
-
-
+       
     @staticmethod
     def get_token(user_name):
         """Token Retrieval for login 

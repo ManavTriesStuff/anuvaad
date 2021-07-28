@@ -30,7 +30,7 @@ class UserAuthenticationModel(object):
             if token_available["status"] == False:
                 log_info("Generating new token for {}".format(user_name), MODULE_CONTEXT)
                 #issuing new token
-                new_token   =   UserUtils.generate_token(user_name, password)
+                new_token   =   UserUtils.generate_token({"user_name":user_name, "password":password},USR_TOKEN_MONGO_COLLECTION)
                 #dict value is returned if generate_token returned error
                 if isinstance(new_token,dict):
                     log_info("Failed to generate new token for {}".format(user_name), MODULE_CONTEXT)
