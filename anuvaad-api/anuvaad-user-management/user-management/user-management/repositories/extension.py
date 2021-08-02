@@ -1,4 +1,4 @@
-from models import ExtensionModel
+from models.extension import ExtensionModel
 
 exModel   =   ExtensionModel()
 

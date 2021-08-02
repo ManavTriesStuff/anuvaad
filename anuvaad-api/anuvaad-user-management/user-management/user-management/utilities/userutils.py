@@ -1,3 +1,4 @@
+from repositories import extension
 import uuid
 import time
 import re
@@ -18,9 +19,11 @@ from app import mail
 from flask import render_template
 from collections import Counter
 from config import EX_USR_MONGO_COLLECTION, EX_USR_TOKEN_MONGO_COLLECTION, USR_MONGO_COLLECTION,USR_TEMP_TOKEN_MONGO_COLLECTION,USR_TOKEN_MONGO_COLLECTION
+from base64 import b64decode
+from nacl.secret import SecretBox
 
 SECRET_KEY          =   secrets.token_bytes()
-
+ex_secret_key       =   config.SECRET_KEY
 role_codes_filepath =   config.ROLE_CODES_URL
 json_file_dir       =   config.ROLE_CODES_DIR_PATH
 json_file_name      =   config.ROLE_CODES_FILE_NAME
@@ -561,6 +564,33 @@ class UserUtils:
                 return post_error("Not Valid","Multiple models of same language pair cannot be assigned at a time to a user",None)
 
 
-                
+    @staticmethod 
+    def decrypt_token(encrypted_message,nonce_encoded):
+        """nacl secret decryption"""
+        try:
+            nonce = b64decode(nonce_encoded)
+            encrypted = b64decode(encrypted_message)
+            box = SecretBox(bytes(ex_secret_key, encoding='utf8'))
+            decrypted = box.decrypt(encrypted, nonce).decode('utf-8')
+            return decrypted
+        except Exception as e:
+            log_info("Token decryption failed",MODULE_CONTEXT)
+            return None
+
+    @staticmethod
+    def validate_extension_usr_token(token_request):
+        try:
+            tokens = token_request.split('::')
+            if tokens[1] != config.EXTENSION_CODE:
+                log_info("Extension code is missing in the request received",MODULE_CONTEXT)
+                return None
+            current_timestamp = eval(str(time.time()).replace('.', '')[0:13])
+            if current_timestamp - eval(tokens[2]) > config.EXTENSION_EXPIRY:
+                log_info("Time exceeded for the request received",MODULE_CONTEXT)
+                return None
+            return tokens[0]
+        except Exception as e:
+            return None
+
 
         

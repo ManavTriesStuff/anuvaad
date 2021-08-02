@@ -5,7 +5,7 @@ from utilities import MODULE_CONTEXT
 from anuvaad_auditor.loghandler import log_info, log_exception
 from flask import request
 from anuvaad_auditor.errorhandler import post_error
-import config
+from utilities import UserUtils
 
 exRepo    =   ExtensionRepositories()
 
@@ -13,12 +13,23 @@ class GenerateIdToken(Resource):
 
     def post(self):
         body = request.get_json()
-        if 'requestID' not in body or not body['requestID']:
-            return post_error("Data Missing", "requestID not found", None), 400
+        if 'id_token' not in body or not body['id_token']:
+            return post_error("Data Missing", "id_token not found", None), 400
 
-        request_id = body["requestID"]
+        id_token = body["id_token"]
+        log_info(f"token request received: {id_token}, from web extension", MODULE_CONTEXT) 
+        token_parsed = id_token.split(':')
+        id_token = UserUtils.decrypt_token(token_parsed[0],token_parsed[1])
+        log_info(id_token,MODULE_CONTEXT)
+        if id_token is None:
+            log_info("Token decryption failed!",MODULE_CONTEXT)
+            return post_error("Invalid token","Token decryption failed",None), 400
+        request_id = UserUtils.validate_extension_usr_token(id_token)
+        if request_id is None:
+            log_info("Token received is not in proper format!",MODULE_CONTEXT)
+            return post_error("Invalid token","Token expired",None), 400
 
-        log_info(f"token request for requestID : {request_id}, from web extension", MODULE_CONTEXT)  
+        log_info(f"Parsed RequestID : {request_id}", MODULE_CONTEXT)  
         try:
             result = exRepo.register_request(request_id)
             if "errorID" in result:
