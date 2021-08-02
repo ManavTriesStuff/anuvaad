@@ -153,7 +153,6 @@ class UserUtils:
                 result = collections.find({"token": token},{"_id": 0, "user": 1, "active": 1, "secret_key": 1})
                 if result.count() == 0:
                     return post_error("Invalid token","Not a valid token",None)
-                
             for value in result:
                 #checking for token status = False 
                 if value["active"] == False:
@@ -203,7 +202,7 @@ class UserUtils:
                     log_info("Fetching user details from extension users repo",MODULE_CONTEXT)
                     username = result[0]["user"]
                     ex_usr_collection = get_db()[EX_USR_MONGO_COLLECTION]
-                    ex_usr = ex_usr_collection.find({"userID": username}, {"_id": 0,"userID" : 1,"roles" : 1})
+                    ex_usr = ex_usr_collection.find({"userID": username}, {"_id": 0})
                     ex_usr_collection.update_one({"userID":username},{"$set":{"last_activity_at" :eval(str(time.time()))}})
                     return ex_usr[0]
             else:
