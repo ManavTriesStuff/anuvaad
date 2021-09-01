@@ -1,3 +1,6 @@
+import uuid
+from indicnlp.tokenize import sentence_tokenize
+
 from repositories.eng_sentence_tokeniser import AnuvaadEngTokenizer
 from repositories.hin_sentence_tokeniser import AnuvaadHindiTokenizer
 from repositories.kannada_sentence_tokeniser import AnuvaadKannadaTokenizer
@@ -21,7 +24,6 @@ import re
 import json
 import requests
 import config
-import uuid
 
 file_ops = FileOperation()
 

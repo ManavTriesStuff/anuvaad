@@ -9,12 +9,21 @@ PORT = 5001
 ENABLE_CORS = False
 
 #EXTERNAL SERVICE CONFIG
-#SAVE_URL = "https://auth.anuvaad.org/anuvaad/ocr-content-handler/v0/ocr/save-document"
+# SAVE_URL = "https://auth.anuvaad.org/anuvaad/ocr-content-handler/v0/ocr/save-document"
 SAVE_VAR = "OCR_CH_URL"
 SAVE_DEFAULT = "http://gateway_anuvaad-ocr-content-handler:5001/anuvaad/ocr-content-handler/v0/ocr/save-document"
 SAVE_URL = os.environ.get(SAVE_VAR, SAVE_DEFAULT)
 
 SAVE_NO_PAGE = 1
+
+# REDIS
+redis_server_host = os.environ.get('REDIS_URL', 'localhost')
+redis_server_port = os.environ.get('REDIS_PORT', 6379)
+redis_key_prefix = 'TKOCR-'
+redis_db = os.environ.get('ANUVAAD_TK_REDIS_DB', 5)
+
+# MONGO DB
+mongo_server_host = os.environ.get('MONGO_CLUSTER_URL', 'mongodb://localhost:27017,localhost:27018/?replicaSet=foo')
 
 # kafka
 consumer_grp_default = 'anuvaad-etl-tokeniser-ocr-consumer-group'

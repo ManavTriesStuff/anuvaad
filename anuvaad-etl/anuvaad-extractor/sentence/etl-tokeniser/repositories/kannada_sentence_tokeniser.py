@@ -11,6 +11,8 @@ class AnuvaadKannadaTokenizer(object):
     number range = ([\u0CE6-\u0CEF])
     source for unicodes : https://unicode.org/charts/PDF/U0C80.pdf
     """
+    _abbrevations_with_non_generalize_pattern = [r'[ ]ಸಂಖ್ಯೆ[:]', r'ರೂ[.]', r'[ ]ದಿನಾಂಕ[:]', r'[.]com']
+    _abbrevations_with_non_generalize = [ 'ಸಂಖ್ಯೆ:', ' ರೂ.' ,'ದಿನಾಂಕ:','.com']
     _abbrevations_with_space_pattern = r'((\s)(([\u0C85-\u0CB9,\u0CDE-\u0CE1])([\u0C85-\u0CB9,\u0CDE-\u0CE1])?([\u0C80-\u0C84,\u0CBC-\u0CD6,\u0CE2-\u0CE3,\u0CF1-\u0CF2])?([\u0C85-\u0CB9,\u0CDE-\u0CE1])?([\u0C80-\u0C84,\u0CBC-\u0CD6,\u0CE2-\u0CE3,\u0CF1-\u0CF2])?(\u002e)(\s)?){1,})'
     _abbrevations_without_space_pattern = r'(^(([\u0C85-\u0CB9,\u0CDE-\u0CE1])([\u0C85-\u0CB9,\u0CDE-\u0CE1])?([\u0C80-\u0C84,\u0CBC-\u0CD6,\u0CE2-\u0CE3,\u0CF1-\u0CF2])?([\u0C85-\u0CB9,\u0CDE-\u0CE1])?([\u0C80-\u0C84,\u0CBC-\u0CD6,\u0CE2-\u0CE3,\u0CF1-\u0CF2])?(\u002e)(\s)?){1,})'
     _text_colon_abbreviations_pattern = r'([\u0C85-\u0CB9,\u0CDE-\u0CE1])([\u0C80-\u0C84,\u0CBC-\u0CD6,\u0CE2-\u0CE3,\u0CF1-\u0CF2])?[:](\s)?([\u0C85-\u0CB9,\u0CDE-\u0CE1])([\u0C80-\u0C84,\u0CBC-\u0CD6,\u0CE2-\u0CE3,\u0CF1-\u0CF2])?'
@@ -206,7 +208,7 @@ class AnuvaadKannadaTokenizer(object):
         return text
     
     def serialize_dates(self, text):
-        patterns = re.findall(r'[0-9]{1,4}[.][0-9]{1,2}[.][0-9]{1,4}',text)
+        patterns = re.findall(r'[0-9|\u0ce6-\u0cef]{1,4}[.][0-9|\u0ce6-\u0cef]{1,2}[.][0-9|\u0ce6-\u0cef]{1,4}',text)
         index = 0
         if patterns is not None and isinstance(patterns, list):
             for pattern in patterns:
@@ -267,7 +269,7 @@ class AnuvaadKannadaTokenizer(object):
         return text
 
     def serialize_dot_with_number_beginning(self, text):
-        patterns = re.findall(r'(^[0-9]{1,}[.])',text)
+        patterns =  re.findall(r'(^[\s]?[0-9|\u0ce6-\u0cef]{1,}[-]?[.])',text)   #patterns = re.findall(r'(^[0-9]{1,}[.])',text)
         index = 0
         if patterns is not None and isinstance(patterns, list):
             for pattern in patterns:
@@ -337,8 +339,13 @@ class AnuvaadKannadaTokenizer(object):
         return text
            
     def serialize_with_abbrevations(self, text):
-        index = 0
+        index_for_with_space = 0
         index_for_without_space = 0
+        index_no_gen = 0
+        for abbrev in self._abbrevations_with_non_generalize_pattern:
+            pattern_non_gen = re.compile(abbrev, re.IGNORECASE)
+            text = pattern_non_gen.sub('#N' + str(index_no_gen) + 'G##', text)
+            index_no_gen += 1
         patterns_wos = re.findall(self._abbrevations_without_space_pattern, text)
         patterns_wos = [tuple(j for j in pattern if j)[0] for pattern in patterns_wos]
         patterns_wos = list(sorted(patterns_wos, key = len))
@@ -347,7 +354,7 @@ class AnuvaadKannadaTokenizer(object):
             for pattern in patterns_wos:
                 pattern_obj = re.compile(re.escape(pattern))
                 self._abbrevations_without_space.append(pattern)
-                text = pattern_obj.sub('#WO'+str(index)+'S##', text)
+                text = pattern_obj.sub('#WO'+str(index_for_without_space)+'S##', text)
                 index_for_without_space+=1
 
         patterns = re.findall(self._abbrevations_with_space_pattern, text)
@@ -358,23 +365,28 @@ class AnuvaadKannadaTokenizer(object):
             for pattern in patterns:
                 pattern_obj = re.compile(re.escape(pattern))
                 self._abbrevations_with_space.append(pattern)
-                text = pattern_obj.sub('##'+str(index)+'##', text)
-                index+=1
+                text = pattern_obj.sub('##'+str(index_for_with_space)+'##', text)
+                index_for_with_space+=1
         return text
 
     def deserialize_with_abbrevations(self, text):
-        index = 0
+        index_for_with_space = 0
         index_for_without_space = 0
+        index_no_gen = 0
+        for abbrev in self._abbrevations_with_non_generalize:
+            pattern = re.compile(re.escape('#N'+str(index_no_gen)+'G##'), re.IGNORECASE)
+            text = pattern.sub(abbrev, text)
+            index_no_gen += 1
         if self._abbrevations_without_space is not None and isinstance(self._abbrevations_without_space, list):
             for pattern in self._abbrevations_without_space:
-                pattern_obj = re.compile(re.escape('#WO'+str(index)+'S##'), re.IGNORECASE)
+                pattern_obj = re.compile(re.escape('#WO'+str(index_for_without_space)+'S##'), re.IGNORECASE)
                 text = pattern_obj.sub(pattern, text)
                 index_for_without_space+=1
         if self._abbrevations_with_space is not None and isinstance(self._abbrevations_with_space, list):
             for pattern in self._abbrevations_with_space:
-                pattern_obj = re.compile(re.escape('##'+str(index)+'##'), re.IGNORECASE)
+                pattern_obj = re.compile(re.escape('##'+str(index_for_with_space)+'##'), re.IGNORECASE)
                 text = pattern_obj.sub(pattern, text)
-                index+=1
+                index_for_with_space+=1
         return text
 
     def serialize_colon_abbreviations(self, text):

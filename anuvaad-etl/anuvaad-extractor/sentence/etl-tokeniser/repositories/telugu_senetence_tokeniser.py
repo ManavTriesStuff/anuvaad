@@ -7,8 +7,8 @@ class AnuvaadTeluguTokenizer(object):
     """
     abbrevations
     """
-    # _abbrevations_with_non_generalize_pattern = [r'[ ]क्यू[.]',r'[ ]डब्लू[.]',r'[ ]एक्स[.]',r'क्यू[.]',r'डब्लू[.]',r'एक्स[.]']
-    # _abbrevations_with_non_generalize = [' क्यू.',' डब्लू.',' एक्स.','क्यू.','डब्लू.','एक्स.']
+    _abbrevations_with_non_generalize_pattern = [r'రూ[ ][.]',r'నెం[ ][.]',r'శ్రీమతి[.]',r'రూ[.]',r'నెం[.]',r'ఎక్స్[.]',r'EX[.]',r'Ex[.]',r'డబ్ల్యూ[.]',r'No[.]',r'[ ]ది[.]',r'క్రైమ్[.]',r'బి[ ][.]',r'[ ]ది[.]']
+    _abbrevations_with_non_generalize = ['రూ .','నెం .','శ్రీమతి.','రూ.','నెం.','ఎక్స్.','EX.','Ex.','డబ్ల్యూ.','No.',' ది .','క్రైమ్.','బి .',' ది.']
     _abbrevations_with_space_pattern = r'((\s)(([\u0C05-\u0C39,\u0C58-\u0C61])([\u0C00-\u0C04,\u0C3E-\u0C56,\u0C62-\u0C63,\u0C77])?([\u0C05-\u0C39,\u0C58-\u0C61])?([\u0C00-\u0C04,\u0C3E-\u0C56,\u0C62-\u0C63,\u0C77])?(\u002e)(\s)?){1,})'
     _abbrevations_without_space_pattern = r'(^(([\u0C05-\u0C39,\u0C58-\u0C61])([\u0C00-\u0C04,\u0C3E-\u0C56,\u0C62-\u0C63,\u0C77])?([\u0C05-\u0C39,\u0C58-\u0C61])?([\u0C00-\u0C04,\u0C3E-\u0C56,\u0C62-\u0C63,\u0C77])?(\u002e)(\s)?){1,})'
     _abbrevations_with_space = []
@@ -31,7 +31,7 @@ class AnuvaadTeluguTokenizer(object):
             self._abbrevations_without_space.append(abbrevations)
         self._abbrevations_with_space = []
         self._abbrevations_without_space = []
-        # self._text_colon_abbreviations = []
+        self._text_colon_abbreviations = []
         self._regex_search_texts = []
         self._date_abbrevations  = []
         self._time_abbreviations = []
@@ -333,8 +333,13 @@ class AnuvaadTeluguTokenizer(object):
         return text
            
     def serialize_with_abbrevations(self, text):
-        index = 0
+        index_for_with_space = 0
         index_for_without_space = 0
+        index_no_gen = 0
+        for abbrev in self._abbrevations_with_non_generalize_pattern:
+            pattern_non_gen = re.compile(abbrev, re.IGNORECASE)
+            text = pattern_non_gen.sub('#N' + str(index_no_gen) + 'G##', text)
+            index_no_gen += 1
         patterns_wos = re.findall(self._abbrevations_without_space_pattern, text)
         patterns_wos = [tuple(j for j in pattern if j)[0] for pattern in patterns_wos]
         patterns_wos = list(sorted(patterns_wos, key = len))
@@ -343,7 +348,7 @@ class AnuvaadTeluguTokenizer(object):
             for pattern in patterns_wos:
                 pattern_obj = re.compile(re.escape(pattern))
                 self._abbrevations_without_space.append(pattern)
-                text = pattern_obj.sub('#WO'+str(index)+'S##', text)
+                text = pattern_obj.sub('#WO'+str(index_for_without_space)+'S##', text)
                 index_for_without_space+=1
 
         patterns = re.findall(self._abbrevations_with_space_pattern, text)
@@ -354,25 +359,29 @@ class AnuvaadTeluguTokenizer(object):
             for pattern in patterns:
                 pattern_obj = re.compile(re.escape(pattern))
                 self._abbrevations_with_space.append(pattern)
-                text = pattern_obj.sub('##'+str(index)+'##', text)
-                index+=1
+                text = pattern_obj.sub('##'+str(index_for_with_space)+'##', text)
+                index_for_with_space+=1
         return text
 
     def deserialize_with_abbrevations(self, text):
-        index = 0
+        index_for_with_space= 0
         index_for_without_space = 0
+        index_no_gen = 0
+        for abbrev in self._abbrevations_with_non_generalize:
+            pattern = re.compile(re.escape('#N'+str(index_no_gen)+'G##'), re.IGNORECASE)
+            text = pattern.sub(abbrev, text)
+            index_no_gen += 1
         if self._abbrevations_without_space is not None and isinstance(self._abbrevations_without_space, list):
             for pattern in self._abbrevations_without_space:
-                pattern_obj = re.compile(re.escape('#WO'+str(index)+'S##'), re.IGNORECASE)
+                pattern_obj = re.compile(re.escape('#WO'+str(index_for_without_space)+'S##'), re.IGNORECASE)
                 text = pattern_obj.sub(pattern, text)
                 index_for_without_space+=1
         if self._abbrevations_with_space is not None and isinstance(self._abbrevations_with_space, list):
             for pattern in self._abbrevations_with_space:
-                pattern_obj = re.compile(re.escape('##'+str(index)+'##'), re.IGNORECASE)
+                pattern_obj = re.compile(re.escape('##'+str(index_for_with_space)+'##'), re.IGNORECASE)
                 text = pattern_obj.sub(pattern, text)
-                index+=1
+                index_for_with_space+=1
         return text
-
     # def serialize_colon_abbreviations(self, text):
     #     index = 0
     #     patterns = re.findall(self._text_colon_abbreviations_pattern, text)

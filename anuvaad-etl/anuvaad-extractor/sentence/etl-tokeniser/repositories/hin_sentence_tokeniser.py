@@ -141,7 +141,7 @@ class AnuvaadHindiTokenizer(object):
         return text
 
     def add_space_after_sentence_end(self, text):
-        sentence_ends = ['.','?','!',';',':','।', '॥']
+        sentence_ends = ['.','?','!',';',':','।', '॥','|']
         for sentence_end in sentence_ends:
             pattern = re.compile(r'['+sentence_end+'][ ]') #remove already correct patterns
             text = pattern.sub(sentence_end, text)
@@ -154,6 +154,10 @@ class AnuvaadHindiTokenizer(object):
         text = pattern_d.sub(' END_||_END', text)
         pattern = re.compile(r'(\u0964)')
         text = pattern.sub(' END_|_END ', text)
+        pattern = re.compile(r'(\u007c)')
+        text = pattern.sub(' END_|||_END ', text)
+        
+
         return text
 
     def deserialize_end(self, text):
@@ -161,6 +165,8 @@ class AnuvaadHindiTokenizer(object):
         text = pattern.sub('।', text)
         pattern = re.compile(re.escape(' END_||_END'), re.IGNORECASE)
         text = pattern.sub('॥', text)
+        pattern = re.compile(re.escape(' END_|||_END'), re.IGNORECASE)
+        text = pattern.sub('|', text)
         return text
 
     def serialize_bullet_points(self, text):
