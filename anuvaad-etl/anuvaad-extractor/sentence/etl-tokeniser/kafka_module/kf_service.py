@@ -12,7 +12,7 @@ from anuvaad_auditor.loghandler import log_error
 from anuvaad_auditor.loghandler import log_exception
 import time
 import config
-
+from repositories.job_repo import JobRepository
 import logging
 from logging.config import dictConfig
 job = JobRepository()
@@ -25,7 +25,7 @@ def process_tokenization_kf():
     try:
         consumer_class = Consumer(config.input_topic, list(str(config.bootstrap_server).split(",")))
         consumer = consumer_class.consumer_instantiate()
-        log_info("process_tokenization_OCR_kf : trying to receive value from consumer ", None)
+        log_info("process_tokenization__OCR_kf : trying to receive value from consumer ", None)
         for msg in consumer:
             data = msg.value
             consumer.commit_async()
@@ -60,6 +60,7 @@ def process_tokenization_kf():
         response_custom['message'] = e.message      
         file_ops.error_handler(response_custom, "KAFKA_PRODUCER_ERROR", True)
         log_exception("process_tokenization_kf : response send to topic %s"%(config.output_topic), data, e)
+
 
 
 dictConfig({

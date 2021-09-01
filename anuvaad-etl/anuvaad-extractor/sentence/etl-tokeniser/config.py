@@ -14,7 +14,8 @@ SAVE_VAR = "OCR_CH_URL"
 SAVE_DEFAULT = "http://gateway_anuvaad-ocr-content-handler:5001/anuvaad/ocr-content-handler/v0/ocr/save-document"
 SAVE_URL = os.environ.get(SAVE_VAR, SAVE_DEFAULT)
 
-SAVE_NO_PAGE = 1
+# MONGO DB
+mongo_server_host = os.environ.get('MONGO_CLUSTER_URL', 'mongodb://localhost:27017,localhost:27018/?replicaSet=foo')
 
 # REDIS
 redis_server_host = os.environ.get('REDIS_URL', 'localhost')
