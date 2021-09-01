@@ -15,6 +15,7 @@ import config
 from repositories.job_repo import JobRepository
 import logging
 from logging.config import dictConfig
+
 job = JobRepository()
 
 # main function for async process
@@ -25,7 +26,7 @@ def process_tokenization_kf():
     try:
         consumer_class = Consumer(config.input_topic, list(str(config.bootstrap_server).split(",")))
         consumer = consumer_class.consumer_instantiate()
-        log_info("process_tokenization__OCR_kf : trying to receive value from consumer ", None)
+        log_info("process_tokenization_OCR_kf : trying to receive value from consumer ", None)
         for msg in consumer:
             data = msg.value
             consumer.commit_async()
