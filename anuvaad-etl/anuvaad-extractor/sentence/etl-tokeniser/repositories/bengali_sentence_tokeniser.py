@@ -437,7 +437,7 @@ class AnuvaadBengaliTokenizer(object):
 
 class SentenceEndLangVars(PunktLanguageVars):
     text = []
-    with open('anuvaad/anuvaad-etl/anuvaad-extractor/sentence/etl-tokeniser/repositories/tokenizer_data/end.txt', encoding='utf8') as f:
+    with open('repositories/tokenizer_data/end.txt', encoding='utf8') as f:
         text = f.read()
     sent_end_chars = text.split('\n')
     sent_end_chars.remove('TT__TT')
