@@ -28,7 +28,7 @@ def process_tokenization_kf():
         consumer = consumer_class.consumer_instantiate()
         log_info("process_tokenization_OCR_kf : trying to receive value from consumer ", None)
         for msg in consumer:
-            data = msg.value
+            data = Consumer.get_json_data(msg.value)
             consumer.commit_async()
             log_info("process_tokenization_OCR_kf : received input json from input topic consumer ", data)
             task_id = str("TOK-" + str(time.time()).replace('.', '')[0:13])
