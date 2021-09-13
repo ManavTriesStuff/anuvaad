@@ -493,7 +493,9 @@ ALLOWED_FONTS = {
         "TAU_Elango_Valluvan",
         "TAU_Elango_Vasuki",
         "TAU_Elango_Veena",
-        "Vijaya"
+        "Vijaya",
+        "Mcl Uzhavan",
+        "Mcl bharathi"
     ],
     "bn": [
         "AdorshoLipi",
