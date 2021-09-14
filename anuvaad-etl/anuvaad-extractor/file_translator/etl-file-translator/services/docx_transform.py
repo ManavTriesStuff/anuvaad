@@ -293,7 +293,7 @@ class DocxTransform(object):
     def translate_paragraphs(self, para):
         try:
             runs = common_obj.get_runs(para, para_obj=True)
-            if self.new_flow is True:
+            if self.is_new_flow is True:
                 for idx, run_list in enumerate(runs):
                     para_id = common_obj.generate_id(file_id=self.file_id, para=str(self.sequence_para_index),
                                                      sub_para=str(idx))
