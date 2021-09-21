@@ -33,14 +33,6 @@ class HTMLTransform(object):
         self.base_json = copy.deepcopy(self.outer_struct)
         self.page_list = self.base_json['result']
     
-    # def get_id(self,tag_name,tag_index,child_tag_index=None,child_tag_name=None):
-    #     block_id = self.file_id+'-'+tag_name+'-'+str(tag_index)
-    #     if child_tag_index is not None:
-    #         block_id = block_id+'-'+str(child_tag_index)
-    #     if child_tag_name is not None:
-    #         block_id = block_id+'-'+child_tag_name
-    #     return block_id
-    
     def get_id(self,para_count,subpara_count=0,run_count=None):
         if run_count == None:
             block_id = self.file_id+'_PARA-'+str(para_count)+'_SUBPARA-'+str(subpara_count)
@@ -93,15 +85,6 @@ class HTMLTransform(object):
         new_page_template = copy.deepcopy(self.page_struct)
         new_page_template['page_no'] = page_number
         return new_page_template
-    
-    def translate_html_file(self,html_doc,trans_map):
-        self.html_doc = html_doc
-        self.trans_map = trans_map
-        log_info("translate_html_file :: Translation Html process started.",self.json_data)
-        for idt,tag in enumerate(html_doc.find_all(True)):
-            if not tag.can_be_empty_element:
-                tag_block_id = self.get_id(tag.name,idt)
-
     
     def generate_json_structure(self, html_doc):
         children_tag_count = 0
