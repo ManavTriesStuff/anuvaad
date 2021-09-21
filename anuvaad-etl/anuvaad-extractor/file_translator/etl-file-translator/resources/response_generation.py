@@ -118,6 +118,21 @@ class Response(object):
 
                             output_filename = translated_pptx_file_name
                             out_file_type = 'pptx'
+                        if config.HTML_FILE_PREFIX in input_filename:
+                            json_file_name = input_filename.split(config.HTML_FILE_PREFIX)[-1]
+                            HTML_file_name = json_file_name.replace('.json', '.html')
+
+                            html_transform_obj = HTMLTransform(input_filename=HTML_file_name,json_data=self.json_data)
+                            html_obj = html_transform_obj.read_html_file(HTML_file_name)
+
+                            fc_obj = FetchContent(record_id=input_filename,json_data=self.json_data)
+                            fc_obj.generate_map_from_fetch_content_response()
+
+                            translated_html = html_transform_obj.translate_html_file(html_obj,fc_obj.block_trans_map)
+                            translated_html_file_name = html_transform_obj.write_html_file(translated_html)
+
+                            output_filename = translated_html_file_name
+                            out_file_type = 'html'
                     else:
                         raise WorkflowkeyError(400,
                                                "Wrong File Type: We are supporting only docx, pptx for transform flow and json files download flow.")

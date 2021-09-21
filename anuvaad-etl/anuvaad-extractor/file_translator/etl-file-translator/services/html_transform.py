@@ -17,6 +17,9 @@ class HTMLTransform(object):
         self.file_name_without_ext = os.path.splitext(input_filename)[0]
         self.file_id = self.file_name_without_ext
 
+        self.para_counter = -1
+        self.run_counter = -1
+
         # Json Structure
         self.outer_struct = common_obj.outer_struct
         self.page_struct = common_obj.page_struct
@@ -30,12 +33,19 @@ class HTMLTransform(object):
         self.base_json = copy.deepcopy(self.outer_struct)
         self.page_list = self.base_json['result']
     
-    def get_id(self,tag_name,tag_index,child_tag_index=None,child_tag_name=None):
-        block_id = self.file_id+'-'+tag_name+'-'+str(tag_index)
-        if child_tag_index is not None:
-            block_id = block_id+'-'+str(child_tag_index)
-        if child_tag_name is not None:
-            block_id = block_id+'-'+child_tag_name
+    # def get_id(self,tag_name,tag_index,child_tag_index=None,child_tag_name=None):
+    #     block_id = self.file_id+'-'+tag_name+'-'+str(tag_index)
+    #     if child_tag_index is not None:
+    #         block_id = block_id+'-'+str(child_tag_index)
+    #     if child_tag_name is not None:
+    #         block_id = block_id+'-'+child_tag_name
+    #     return block_id
+    
+    def get_id(self,para_count,subpara_count=0,run_count=None):
+        if run_count == None:
+            block_id = self.file_id+'_PARA-'+str(para_count)+'_SUBPARA-'+str(subpara_count)
+        else:
+            block_id = self.file_id+'_PARA-'+str(para_count)+'_SUBPARA-'+str(subpara_count)+'_RUN-'+str(run_count)
         return block_id
 
     # reading content of html file and creating a BeautifulSoup obj
@@ -84,6 +94,15 @@ class HTMLTransform(object):
         new_page_template['page_no'] = page_number
         return new_page_template
     
+    def translate_html_file(self,html_doc,trans_map):
+        self.html_doc = html_doc
+        self.trans_map = trans_map
+        log_info("translate_html_file :: Translation Html process started.",self.json_data)
+        for idt,tag in enumerate(html_doc.find_all(True)):
+            if not tag.can_be_empty_element:
+                tag_block_id = self.get_id(tag.name,idt)
+
+    
     def generate_json_structure(self, html_doc):
         children_tag_count = 0
         para_count = 0
@@ -106,37 +125,47 @@ class HTMLTransform(object):
                     continue
                 content_type = self.get_contents_type(tag.contents)
                 if content_type in ['MIX']:
+                    self.para_counter += 1
                     children_tag_count += self.get_children_tag_count(tag.contents)
-                    para_struct['text'] = tag.text
-                    word_count += common_obj.word_count(tag.text)
-                    para_struct['block_id'] = self.get_id(tag.name,idt)
                     for i,c in enumerate(tag.contents):
-                        run_struct = copy.deepcopy(self.run_struct)
+                        self.run_counter += 1
+                        para_struct = copy.deepcopy(self.para_struct)
+                        run_struct = copy.deepcopy(common_obj.run_struct)
+                        para_struct['block_id'] = self.get_id(self.para_counter,i)
+                        run_struct['block_id'] = self.get_id(self.para_counter,i,self.run_counter)
                         if isinstance(c,Tag):
                             if c.text.strip() == "":
                                 continue
+                            para_struct['text'] = c.text
+                            word_count += common_obj.word_count(c.text)
                             run_struct['text'] = c.text
-                            run_struct['attrib'] = c.attrs
-                            run_struct['block_id'] = self.get_id(tag.name,idt,i,c.name)
                         else:
                             if c.strip() == "":
                                 continue
+                            para_struct['text'] = c
+                            word_count += common_obj.word_count(c)
                             run_struct['text'] = c
-                            run_struct['block_id'] = self.get_id(tag.name,idt,i)
                         para_struct['children'].append(run_struct)
+                        if para_struct != self.para_struct:
+                            self.page_list[page_number - 1]['text_blocks'].append(para_struct)
+                        self.run_counter = -1
+                    
                 elif content_type in ['STRING']:
+                    self.para_counter += 1
                     para_struct['text'] = tag.text
                     word_count += common_obj.word_count(tag.text)
-                    para_struct['block_id'] = self.get_id(tag.name,idt)
+                    para_struct['block_id'] = self.get_id(self.para_counter)
                     for i,c in enumerate(tag.contents):
                         if c.strip() == "":
                             continue
+                        self.run_counter += 1
                         run_struct = copy.deepcopy(self.run_struct)
                         run_struct['text'] = c
-                        run_struct['block_id'] = self.get_id(tag.name,idt,i)
+                        run_struct['block_id'] = self.get_id(self.para_counter,i,self.run_counter)
                         para_struct['children'].append(run_struct)
-                if len(para_struct['children']) > 0:
-                    self.page_list[page_number - 1]['text_blocks'].append(para_struct)
+                    if para_struct != self.para_struct:
+                        self.page_list[page_number - 1]['text_blocks'].append(para_struct)
+                    self.run_counter = -1
         log_info(f'Generated JSON FILE for file: {self.file_name_without_ext}', self.json_data)
         return self.base_json
 
