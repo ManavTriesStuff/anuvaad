@@ -112,7 +112,8 @@ class Common(object):
         inner_runs = iterable_obj.xpath('.//w:r')
         if inner_runs:
             for irun in inner_runs:
-                run_list.append(irun)
+                run_obj = Run(irun, iterable_obj)
+                run_list.append(run_obj)
         return run_list
 
     def get_runs(self, iterable_obj, para_obj=False, run_obj=False, run_lst=False, file_type=config.TYPE_DOCX):
@@ -137,9 +138,11 @@ class Common(object):
                     temp_list = []
                 elif isinstance(child, CT_HYPERLINK):
                     runs.append(temp_list)
+                    temp_list = []
                     runs.append(self.get_inner_runs(child))
                 elif isinstance(child, CT_SMARTTAG):
                     runs.append(temp_list)
+                    temp_list = []
                     runs.append(self.get_inner_runs(child))
             runs.append(temp_list)
             parent_run_list = [x for x in runs if x]
