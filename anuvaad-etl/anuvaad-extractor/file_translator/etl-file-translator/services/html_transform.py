@@ -9,6 +9,7 @@ from bs4 import BeautifulSoup
 from bs4.element import Tag
 from  bs4.element import Script, Stylesheet, TemplateString, Comment
 from bs4 import NavigableString
+import uuid
 
 
 class HTMLTransform(object):
@@ -85,6 +86,44 @@ class HTMLTransform(object):
         new_page_template = copy.deepcopy(self.page_struct)
         new_page_template['page_no'] = page_number
         return new_page_template
+    
+    def translate_html_file(self,html_doc,trans_map):
+        trans_para_counter = -1
+        children_tag_count = 0
+        log_info("translate_html_file :: Translation Html process started.",self.json_data)
+        for idt,tag in enumerate(html_doc.find_all(True)):
+            if not tag.can_be_empty_element:
+                if children_tag_count > 0:
+                    children_tag_count -= 1
+                    continue
+                content_type = self.get_contents_type(tag.contents)
+                if content_type in ['MIX']:
+                    trans_para_counter += 1
+                    children_tag_count += self.get_children_tag_count(tag.contents)
+                    for i,c in enumerate(tag.contents):
+                        block_id = self.get_id(trans_para_counter,i)
+                        if isinstance(c,Tag):
+                            if c.text.strip() == "":
+                                continue
+                        else:
+                            if c.strip() == "":
+                                continue
+                        if trans_map.get(block_id) is not None:
+                            c.string.replace_with(trans_map[block_id])
+                elif content_type in ['STRING']:
+                    trans_para_counter += 1
+                    block_id = self.get_id(trans_para_counter)
+                    if trans_map.get(block_id) is not None:
+                        tag.string.replace_with(trans_map[block_id])
+        return html_doc
+    
+    def write_html_file(self,html_doc):
+        file_name = str(uuid.uuidv4())+'.html'
+        file_out_path = common_obj.input_path(file_name)
+        with open(file_out_path,'w') as f:
+            f.write(html_doc.prettify())
+        return file_name
+
     
     def generate_json_structure(self, html_doc):
         children_tag_count = 0
