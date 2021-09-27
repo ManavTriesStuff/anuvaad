@@ -168,26 +168,36 @@ class Common(object):
             run_word_len = len([i for i in ru.text.split(' ') if i not in ['', ' ']])
             trans_para_word_len = len([i for i in trans_para.split(' ') if i not in ['', ' ']])
 
+            if ru.text.startswith(" "):
+                trans_para = '*_*' + trans_para
+            if ru.text.endswith(" "):
+                trans_para = trans_para + '*_*'
+
             if trans_para.strip() in ['', ' '] and len(ru.text) != 0:
                 # When trans para is already blank but still there are runs having data in them
                 ru.text = ''
             elif idx == len(iterable_obj) - 1 and start_run:  # If current run is both last and First run
                 ru.text = trans_para
+                ru.text = ru.text.replace('*_*', ' ')
                 start_run = False
                 trans_para = ''
             elif idx == len(iterable_obj) - 1 and not start_run:  # If current run is the last run
                 ru.text = ' ' + trans_para
+                ru.text = ru.text.replace('*_*', ' ')
                 trans_para = ''
             elif run_word_len >= trans_para_word_len:  # When run has more no of words than the trans para
                 # in that case the whole translated para will go in to the current run
                 if not start_run and not trans_para.startswith(' '):
                     ru.text = ' ' + trans_para
+                    ru.text = ru.text.replace('*_*', ' ')
                 else:
                     ru.text = trans_para
+                    ru.text = ru.text.replace('*_*', ' ')
                 trans_para = ''
             elif start_run:  # If current run is the first run then it will be starting of the sentence
                 # in that case there will be no space in the beginning
                 ru.text = ' '.join(trans_para.split(' ', run_word_len)[0:run_word_len])
+                ru.text = ru.text.replace('*_*', ' ')
                 start_run = False
                 trans_para = trans_para.split(' ', run_word_len)[-1]
                 last_processed_run = ru
@@ -195,6 +205,7 @@ class Common(object):
             else:  # If current run is the not the starting of a sentence we are appending this sentence with another
                 # sentence in that case there will be space in between those
                 ru.text = ' ' + ' '.join(trans_para.split(' ', run_word_len)[0:run_word_len])
+                ru.text = ru.text.replace('*_*', ' ')
                 trans_para = trans_para.split(' ', run_word_len)[-1]
                 last_processed_run = ru
 
@@ -204,8 +215,10 @@ class Common(object):
         if trans_para.strip() not in ['', ' '] and last_processed_run is not None:
             if not start_run and not trans_para.startswith(' '):
                 last_processed_run.text = ' ' + trans_para
+                last_processed_run.text = last_processed_run.text.replace('*_*', ' ')
             else:
                 last_processed_run.text = trans_para
+                last_processed_run.text = last_processed_run.text.replace('*_*', ' ')
             trans_para = ''
 
     def write_json_file(self, out_file_name, transformed_obj):
