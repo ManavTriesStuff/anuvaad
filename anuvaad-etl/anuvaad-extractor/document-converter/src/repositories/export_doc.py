@@ -37,10 +37,7 @@ class DocumentExporterRepository(object):
         
         
         try:
-            token="xx"
-            # headers = {"Content-Type": "application/json","auth-token": token}
             headers = {"Content-Type": "application/json"}
-            # request_url="https://auth.anuvaad.org/anuvaad/ocr-content-handler/v0/ocr/fetch-document?recordID=A_FOD10GVOT-KAEOf-1618214957929%7C0-16182149661869102.json&start_page=0&end_page=0"
             request_url = doc_utils.generate_url(config.OCR_CONTENT_HANDLER_HOST, record_id, 0, 0)
             log_info("Intiating request to fetch data from %s"%request_url, MODULE_CONTEXT)
             response = requests.get(request_url, headers = headers)
@@ -75,9 +72,9 @@ class DocumentExporterRepository(object):
                                         lines.append(' '.join(words) + '\n')
                                         page_lines.append({'boundingBox': doc_utils.vertices_to_boundingbox(line_region['boundingBox']['vertices']), 
                                                     'text': ' '.join(words)})
-
                             page_paragraphs.append({'boundingBox': doc_utils.vertices_to_boundingbox(para_region['boundingBox']['vertices']), 
-                                                'text': ''.join(lines)})
+                                               'text': ''.join(lines)})
+            print(page_lines,"lllllllllllll")
             return page_paragraphs, page_lines
         except Exception as e:
             log_exception("Page regions formation error", MODULE_CONTEXT, e)
@@ -124,3 +121,35 @@ class DocumentExporterRepository(object):
             log_exception("Exception on generating txt from pdf :{}".format(str(e)),MODULE_CONTEXT,e)
             return False
         return text_filepath
+
+    def get_lines_for_txt_write(self, page):
+        try:
+            lines = []
+            if 'regions'in page.keys():
+                for para_region in page['regions']:
+                    if 'class' in para_region.keys() and 'regions' in para_region.keys():
+                        if para_region['class'] in ['PARA','HEADER','FOOTER']:
+                            lines.append(f"{para_region['text']}\n")
+                        elif para_region['class'] == 'TABLE':
+                            for cell_region in para_region['regions']:
+                                if 'class' in cell_region.keys() and 'regions' in cell_region.keys():
+                                    if cell_region['class'] in ['CELL']:
+                                        for word_region in cell_region['regions']:
+                                            if 'class' in word_region.keys() and 'text' in word_region.keys():
+                                                if word_region['class'] in ['WORD','CELL_TEXT']:
+                                                    lines.append(f"{word_region['text']}\n")
+
+            return lines
+        except Exception as e:
+            log_exception("Exception while formatting data for txt write", MODULE_CONTEXT, e)
+    
+    def write_to_txt(self,record,file_name):
+        try:
+            for page in record["pages"]:
+                lines     = self.get_lines_for_txt_write(page)
+                with open(file_name,'a') as output_file:
+                    for line in lines:
+                        output_file.write(line)
+                
+        except Exception as e:
+            log_exception("Exception while writing to txt", MODULE_CONTEXT, e)

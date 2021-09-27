@@ -22,4 +22,3 @@ FILE_CONVERTER_ENDPOINT     = os.environ.get('FILE_CONVERTER_SERVER_URL', 'http:
 
 
 OCR_CONTENT_HANDLER_HOST    = os.environ.get('OCR_CONTENT_HANDLER_SERVER_URL', 'http://172.30.0.232:5009/')
-# OCR_CONTENT_HANDLER_ENDPOINT    = os.environ.get('OCR_CONTENT_HANDLER_SERVER_URL', 'https://auth.anuvaad.org')

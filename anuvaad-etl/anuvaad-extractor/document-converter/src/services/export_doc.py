@@ -27,16 +27,15 @@ class DocumentExporterService:
                 output_filename=os.path.join(output_file_folder,record_id+'_'+str(randint(100, 999))+".pdf") 
                 export_result=exportRepo.create_pdf(data,output_filename,'arial-unicode-ms',34, 4)
                 zip_file= FileUtilities.zipfile_creation(export_result)
-                log_info("docx file formation done!! filename: %s"%zip_file, MODULE_CONTEXT)
+                log_info("pdf file formation done!! file folder: %s"%zip_file, MODULE_CONTEXT)
                 return zip_file
 
             if file_type == 'txt':
                 log_info("document type %s formation started"%file_type, MODULE_CONTEXT)
-                output_filename=os.path.join(output_file_folder,record_id+'_'+str(randint(100, 999))+".pdf")
-                export_result=exportRepo.create_pdf(data,output_filename,'arial-unicode-ms',34, 4)
-                convert_to_txt= exportRepo.create_pdf_to_text(export_result)
-                zip_file= FileUtilities.zipfile_creation(convert_to_txt)
-                log_info("docx file formation done!! filename: %s"%zip_file, MODULE_CONTEXT)
+                output_filename=os.path.join(output_file_folder,str(record_id).replace(".json","")+'_'+str(randint(100, 999))+".txt")
+                export_result=exportRepo.write_to_txt(data,output_filename)
+                zip_file= FileUtilities.zipfile_creation(output_filename)
+                log_info("txt file formation done!! file folder: %s"%zip_file, MODULE_CONTEXT)
                 return zip_file
 
         except Exception as e:

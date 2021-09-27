@@ -7,6 +7,7 @@ from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.lib.fonts import addMapping
 from reportlab.pdfbase import pdfmetrics
 from zipfile import ZipFile
+from config import DATA_OUTPUT_DIR
 
 class FileUtilities():
 
@@ -24,10 +25,10 @@ class FileUtilities():
         return output_path
 
     def zipfile_creation(filepath):
+        arcname = filepath.replace(f"{DATA_OUTPUT_DIR}/","")
         zip_file = filepath.split('.')[0] + '.zip'
         with ZipFile(zip_file, 'w') as myzip:
-            myzip.write(filepath)
-            myzip.close()
+            myzip.write(filepath,arcname)
         os.remove(filepath)
         return zip_file.split('/')[-1]
 
