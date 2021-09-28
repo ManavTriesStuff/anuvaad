@@ -36,11 +36,8 @@ class DocumentConversion(object):
     def get_data_from_content_handler(self, record_id, user_id, start_page=0, end_page=0):
         doc_utils = DocumentUtilities()
         try:
-            tok="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyTmFtZSI6ImphaW55LmpveUB0YXJlbnRvLmNvbSIsIkphaW55QDEyMyI6ImInJDJiJDEyJFR1UHpGZGZzRTh1M2g3ei9walpUWi5HbHQwdDVuaC9iNkh3WHFzOU1IRnRwVWFrd0RwLk1lJyIsImV4cCI6MTYzMjgwODc4OX0.7zk-kQ584Iof611abCUr8D4hO7nbsa39TzvcymM7Xl8"
-            headers = {"auth-token" : tok, "Content-Type": "application/json"}
-            # headers = {"x-user-id" : user_id, "Content-Type": "application/json"}
-            request_url = "https://auth.anuvaad.org/anuvaad/content-handler/v0/fetch-content?record_id=A_FTTTR-hPlFC-1632802339404%7CDOCX1-aec801fd-2d28-4639-b2c9-d40a2ef0c4bb.json&start_page=0&end_page=0"
-            # request_url = doc_utils.url_generation(config.CONTENT_HANDLER_ENDPOINT, record_id, start_page, end_page)
+            headers = {"x-user-id" : user_id, "Content-Type": "application/json"}
+            request_url = doc_utils.url_generation(config.CONTENT_HANDLER_ENDPOINT, record_id, start_page, end_page)
             log_info("Intiating request to fetch data from %s"%request_url, MODULE_CONTEXT)
             response = requests.get(request_url, headers = headers)
             response_data = response.content
