@@ -36,8 +36,11 @@ class DocumentConversion(object):
     def get_data_from_content_handler(self, record_id, user_id, start_page=0, end_page=0):
         doc_utils = DocumentUtilities()
         try:
-            headers = {"x-user-id" : user_id, "Content-Type": "application/json"}
-            request_url = doc_utils.url_generation(config.CONTENT_HANDLER_ENDPOINT, record_id, start_page, end_page)
+            tok="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyTmFtZSI6ImphaW55LmpveUB0YXJlbnRvLmNvbSIsIkphaW55QDEyMyI6ImInJDJiJDEyJFR1UHpGZGZzRTh1M2g3ei9walpUWi5HbHQwdDVuaC9iNkh3WHFzOU1IRnRwVWFrd0RwLk1lJyIsImV4cCI6MTYzMjgwODc4OX0.7zk-kQ584Iof611abCUr8D4hO7nbsa39TzvcymM7Xl8"
+            headers = {"auth-token" : tok, "Content-Type": "application/json"}
+            # headers = {"x-user-id" : user_id, "Content-Type": "application/json"}
+            request_url = "https://auth.anuvaad.org/anuvaad/content-handler/v0/fetch-content?record_id=A_FTTTR-hPlFC-1632802339404%7CDOCX1-aec801fd-2d28-4639-b2c9-d40a2ef0c4bb.json&start_page=0&end_page=0"
+            # request_url = doc_utils.url_generation(config.CONTENT_HANDLER_ENDPOINT, record_id, start_page, end_page)
             log_info("Intiating request to fetch data from %s"%request_url, MODULE_CONTEXT)
             response = requests.get(request_url, headers = headers)
             response_data = response.content
@@ -67,9 +70,9 @@ class DocumentConversion(object):
                 b64_images       = []
                 if 'images' not in list(page.keys()) or 'text_blocks' not in list(page.keys()):
                     log_info('looks like one of the key is missing {}'.format(page.keys()), MODULE_CONTEXT)
-                    continue
+                    pass
                 
-                images       = page['images']
+                images       = page['images'] if 'images' in list(page.keys()) else None
                 texts        = page['text_blocks']
                 page_num     = page['page_no']
                 page_width   = page['page_width']
@@ -93,16 +96,17 @@ class DocumentConversion(object):
                             text_value.append(processed_text['src'])
                     if text_value:
                         text_values.append(' '.join(text_value))
-                for image in images:
-                    text_tops.append(image['text_top'])
-                    text_lefts.append(image['text_left'])
-                    text_widths.append(image['text_width'])
-                    text_heights.append(image['text_height'])
-                    b64_images.append(image['base64'])
-                    text_values.append(None)
-                    font_sizes.append(None)
-                    font_families.append(None)
-                    font_colors.append(None)
+                if images:                       
+                    for image in images:
+                        text_tops.append(image['text_top'])
+                        text_lefts.append(image['text_left'])
+                        text_widths.append(image['text_width'])
+                        text_heights.append(image['text_height'])
+                        b64_images.append(image['base64'])
+                        text_values.append(None)
+                        font_sizes.append(None)
+                        font_families.append(None)
+                        font_colors.append(None)
                 
                 df = pd.DataFrame(list(zip(text_tops, text_lefts, text_widths, text_heights,
                                                         text_values, font_sizes, font_families, font_colors, b64_images)), 
@@ -236,12 +240,11 @@ class DocumentConversion(object):
             out_translated_txt_filename = os.path.splitext(os.path.basename(record_id.split('|')[0]))[0] + str(uuid.uuid4()) + '_translated_txt.txt'
             output_filepath_txt = os.path.join(self.DOWNLOAD_FOLDER , out_translated_txt_filename)
             out_txt_file_write = open(output_filepath_txt, 'w')
-            page_width = page_layout['page_width']
-            max_chars_in_line = int(page_width/13)
+            max_chars_in_line = int(page_layout['page_width']/13) if page_layout['page_width'] else 500
             for idx, df in enumerate(dataframes):
                 for idx, row in df.iterrows():
                     if df.iloc[idx]['text'] != None and idx+1 < df.shape[0]:
-                        extra_spaces = int((df.iloc[idx]['text_left'] - 50)/13)
+                        extra_spaces = int((df.iloc[idx]['text_left'] - 50)/13) if df.iloc[idx]['text_left'] else 50
                         write_str = re.sub(r'^', ' '*extra_spaces, df.iloc[idx]['text'])
                         if df.iloc[idx]['text_top'] != df.iloc[idx+1]['text_top']:
                             if len(write_str) < max_chars_in_line:
@@ -255,8 +258,13 @@ class DocumentConversion(object):
                             same_line_status = bool(df.iloc[idx]['text_top'] == df.iloc[idx+same_line_index+1]['text_top'])
                             while same_line_status:
                                 if idx+same_line_index+1 < df.shape[0]:
-                                    onwards_line_space = int((df.iloc[idx+same_line_index+1]['text_left'] - df.iloc[idx+same_line_index]['text_left'] \
-                                        - df.iloc[idx+same_line_index]['text_width'])/13)
+                                    
+                                    try:
+                                        onwards_line_space =    int((df.iloc[idx+same_line_index+1]['text_left'] - df.iloc[idx+same_line_index]['text_left'] \
+                                                            - df.iloc[idx+same_line_index]['text_width'])/13)
+                                    except:
+                                        onwards_line_space = 50
+
                                     if df.iloc[idx+same_line_index+1]['text'] != None:
                                         write_str += ' '*onwards_line_space + df.iloc[idx+same_line_index+1]['text']
                                         df = df.replace({df.iloc[idx+same_line_index+1]['text'] : None})
@@ -276,7 +284,7 @@ class DocumentConversion(object):
                                 for item in sub_string_list:
                                     out_txt_file_write.write("%s\n"%item)
                     elif df.iloc[idx]['text'] != None and idx+1 == df.shape[0]:
-                        extra_spaces = int((df.iloc[idx]['text_left'] - 50)/13)
+                        extra_spaces = int((df.iloc[idx]['text_left'] - 50)/13) if df.iloc[idx]['text_left'] else 50
                         write_str = re.sub(r'^', ' '*extra_spaces, df.iloc[idx]['text'])
                         if len(write_str) < max_chars_in_line:
                             out_txt_file_write.write("%s\n"%write_str)
