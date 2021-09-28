@@ -118,9 +118,9 @@ class HTMLTransform(object):
         return html_doc
     
     def write_html_file(self,html_doc):
-        file_name = str(uuid.uuidv4())+'.html'
+        file_name = str(uuid.uuid4())+'.html'
         file_out_path = common_obj.input_path(file_name)
-        with open(file_out_path,'w') as f:
+        with open(file_out_path,'w',encoding='utf-8') as f:
             f.write(html_doc.prettify())
         return file_name
 
