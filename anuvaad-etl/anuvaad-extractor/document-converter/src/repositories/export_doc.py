@@ -23,7 +23,6 @@ def zipfile_creation(filepath):
     zip_file = filepath.split('.')[0] + '.zip'
     with ZipFile(zip_file, 'w') as myzip:
         myzip.write(filepath)
-        myzip.close()
     os.remove(filepath)
     return zip_file.split('/')[-1]
 
@@ -74,7 +73,6 @@ class DocumentExporterRepository(object):
                                                     'text': ' '.join(words)})
                             page_paragraphs.append({'boundingBox': doc_utils.vertices_to_boundingbox(para_region['boundingBox']['vertices']), 
                                                'text': ''.join(lines)})
-            print(page_lines,"lllllllllllll")
             return page_paragraphs, page_lines
         except Exception as e:
             log_exception("Page regions formation error", MODULE_CONTEXT, e)

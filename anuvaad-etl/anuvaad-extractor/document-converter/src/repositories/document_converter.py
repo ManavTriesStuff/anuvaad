@@ -20,12 +20,12 @@ import xlsxwriter
 from jsonpath_rw import jsonpath, parse
 
 def zipfile_creation(filepath):
-    zip_file = filepath.split('.')[0] + '.zip'
-    with ZipFile(zip_file, 'w') as myzip:
-        myzip.write(filepath)
-        myzip.close()
-    os.remove(filepath)
-    return zip_file.split('/')[-1]
+        arcname = filepath.replace(f"{config.DATA_OUTPUT_DIR}/","")
+        zip_file = filepath.split('.')[0] + '.zip'
+        with ZipFile(zip_file, 'w') as myzip:
+            myzip.write(filepath,arcname)
+        os.remove(filepath)
+        return zip_file.split('/')[-1]
 
 class DocumentConversion(object):
 
