@@ -168,9 +168,11 @@ class Common(object):
             run_word_len = len([i for i in ru.text.split(' ') if i not in ['', ' ']])
             trans_para_word_len = len([i for i in trans_para.split(' ') if i not in ['', ' ']])
 
-            if ru.text.startswith(" "):
+            if ru.text.startswith(" ") or ru.text.startswith(u'\xa0'):
                 trans_para = '*_*' + trans_para
-            if ru.text.endswith(" "):
+            # if ru.text[0] in [',','.'] and ru.text[1] == ' ':
+            #     trans_para = '*_*' + trans_para
+            if ru.text.endswith(" ") or ru.text.endswith(u'\xa0'):
                 trans_para = trans_para + '*_*'
 
             if trans_para.strip() in ['', ' '] and len(ru.text) != 0:
@@ -214,10 +216,10 @@ class Common(object):
         # because of which it got skipped
         if trans_para.strip() not in ['', ' '] and last_processed_run is not None:
             if not start_run and not trans_para.startswith(' '):
-                last_processed_run.text = ' ' + trans_para
+                last_processed_run.text = last_processed_run.text + ' ' + trans_para
                 last_processed_run.text = last_processed_run.text.replace('*_*', ' ')
             else:
-                last_processed_run.text = trans_para
+                last_processed_run.text = last_processed_run.text + trans_para
                 last_processed_run.text = last_processed_run.text.replace('*_*', ' ')
             trans_para = ''
 
